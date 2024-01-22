@@ -1,17 +1,22 @@
-import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.*;
-import lombok.*;
 import java.util.Date;
 
 public class Main {
+
+    public static final String TAB_NAME_CONST = "TABLE_NAME";
+    public static final String COL_NAME_CONST = "COLUMN_NAME";
+    public static final String SQL_SELECT_QUERY = "SELECT * FROM people.person\n" +
+            "WHERE age > 21 ORDER BY dateTimeCreate";
+
     public static void main(String[] args) {
         try (Connection connection = DriverManager.getConnection(JDBCResource.getURL(), JDBCResource.getUser(), JDBCResource.getPassword())) {
 
-           // addingCustom(connection);
-            List<PersonDTO> people =  extr(connection);
-            
-            for(PersonDTO temp : people) System.out.println(temp);
+           addingCustom(connection);
+            List<PersonDTO> people = extracting(connection);
+
+            people.stream().forEach(System.out::println);
+
 
             DatabaseMetaData metaData = connection.getMetaData();
             List tables = getTables(metaData,"people");
@@ -24,19 +29,20 @@ public class Main {
         }
     }
 
-    private static List getTables(DatabaseMetaData metaData, String catalog) throws SQLException {
+    private static List<String> getTables(DatabaseMetaData metaData, String catalog) throws SQLException {
         ResultSet rs = metaData.getTables(catalog,null,null,null);
-        List tables = new ArrayList();
+        List<String> tables = new ArrayList();
         while(rs.next()){
-            tables.add(rs.getString("TABLE_NAME"));
+            tables.add(rs.getString(TAB_NAME_CONST));
         }
+        rs.close();
         return tables;
     }
-    private static List getColumns(DatabaseMetaData metaData, String catalog) throws SQLException {
-        List columns = new ArrayList();
-        ResultSet rs = metaData.getColumns("people",null,null,null);
+    private static List<String> getColumns(DatabaseMetaData metaData, String catalog) throws SQLException {
+        List<String> columns = new ArrayList();
+        ResultSet rs = metaData.getColumns(catalog,null,null,null);
         while(rs.next()){
-            columns.add(rs.getString("COLUMN_NAME"));
+            columns.add(rs.getString(COL_NAME_CONST));
         }
         return columns;
 
@@ -45,10 +51,10 @@ public class Main {
     private static void addingCustom(Connection connection) throws SQLException {
         Date myDate = new GregorianCalendar(2003, Calendar.MARCH, 11).getTime();
         long myTime = System.currentTimeMillis();
-        try (PreparedStatement preparedStatement = connection.prepareStatement(customPerson.CUSTOM_PERSON_STATEMENT)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(CustomPerson.CUSTOM_PERSON_STATEMENT)) {
             connection.setAutoCommit(false);
             try {
-                customPerson.insertPerson(preparedStatement, 11,
+                CustomPerson.insertPerson(preparedStatement, 11,
                         234.1,
                         "MP123222",
                         "Busan",
@@ -57,7 +63,7 @@ public class Main {
                         myTime,
                         "bla bla");
 
-                customPerson.insertPerson(preparedStatement, 1,
+                CustomPerson.insertPerson(preparedStatement, 1,
                         234.1,
                         "MP123222",
                         "Tokyo",
@@ -66,7 +72,7 @@ public class Main {
                         myTime,
                         "badsda");
 
-                customPerson.insertPerson(preparedStatement, 22,
+                CustomPerson.insertPerson(preparedStatement, 22,
                         234.1,
                         "MP123222",
                         "Seoul",
@@ -75,7 +81,7 @@ public class Main {
                         myTime,
                         "bladda");
 
-                customPerson.insertPerson(preparedStatement, 23,
+                CustomPerson.insertPerson(preparedStatement, 23,
                         234.1,
                         "MP123222",
                         "Busan",
@@ -84,7 +90,7 @@ public class Main {
                         myTime,
                         "blaa");
 
-                customPerson.insertPerson(preparedStatement, 24,
+                CustomPerson.insertPerson(preparedStatement, 24,
                         234.1,
                         "MP123222",
                         "Busan",
@@ -102,11 +108,10 @@ public class Main {
         }
     }
 
-    private static List extr(Connection connection) throws SQLException {
+    private static List<PersonDTO> extracting(Connection connection) throws SQLException {
         List<PersonDTO> people = new ArrayList<>();
         Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("SELECT * FROM people.person\n" +
-                "WHERE age > 21 ORDER BY dateTimeCreate");
+        ResultSet resultSet = statement.executeQuery(SQL_SELECT_QUERY);
         while (resultSet.next()){
             PersonDTO temp = PersonDTO
                     .builder()
