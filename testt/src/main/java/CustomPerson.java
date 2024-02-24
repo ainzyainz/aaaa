@@ -2,7 +2,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Date;
 
-public class customPerson {
+public class CustomPerson {
 
         public static final String CUSTOM_PERSON_STATEMENT =
                 "INSERT INTO people.person (age, salary, passport, address, dateOfBirthday, dateTimeCreate, timeToLunch, ` letter`) " +
